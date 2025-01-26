@@ -10,7 +10,7 @@
 </p>
 
 <QuickGrid class="table table-striped table-hover" Items="Filtered" Pagination="@pagination">
-    <PropertyColumn Title="Start Date" Property="@(x => x.SessionStartToLocalTime)" Sortable="true" IsDefaultSortColumn="true"></PropertyColumn>
+    <PropertyColumn Title="Start Date" Property="@(x => x.SessionStartToLocalTime)" Sortable="true" IsDefaultSortColumn="true" InitialSortDirection="Microsoft.AspNetCore.Components.QuickGrid.SortDirection.Descending"></PropertyColumn>
     <PropertyColumn Title="Duration Min" Property="@(x => x.TotalTimeInMinutes)" Sortable="true" Align="Align.Right"></PropertyColumn>
     @if (showPath)
     {

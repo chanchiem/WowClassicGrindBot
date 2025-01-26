@@ -350,21 +350,25 @@ public sealed class AdhocNPCGoal : GoapGoal, IGoapEventListener, IRouteProvider,
             e = wait.Until(TIMEOUT, gossipReader.GossipEnd);
             if (e < 0)
             {
-                LogWarn($"Gossip - {nameof(gossipReader.GossipEnd)} not fired after {e}ms");
-                return false;
+                LogWarn($"Gossip - {nameof(gossipReader.GossipEnd)} not fired after {e}ms. Manually closing");
+                execGameCommand.Run($"/run if MerchantFrame:IsShown() then CloseMerchant() end");
+                e = wait.Until(TIMEOUT, gossipReader.GossipEnd);
+                if (e < 0)
+                {
+                    LogWarn($"Gossip - {nameof(gossipReader.GossipEnd)} Still not fired after manual closing after {e}ms.");
+                    return true; // Assume it works for now. This is causing the bot to just stop working
+                }
+            }
+
+            if (gossipReader.Gossips.TryGetValue(Gossip.Vendor, out int orderNum))
+            {
+                Log($"Picked {orderNum}th for {Gossip.Vendor.ToStringF()}");
+                execGameCommand.Run($"/run SelectGossipOption({orderNum})--");
             }
             else
             {
-                if (gossipReader.Gossips.TryGetValue(Gossip.Vendor, out int orderNum))
-                {
-                    Log($"Picked {orderNum}th for {Gossip.Vendor.ToStringF()}");
-                    execGameCommand.Run($"/run SelectGossipOption({orderNum})--");
-                }
-                else
-                {
-                    LogWarn($"Target({playerReader.TargetId}) has no {Gossip.Vendor.ToStringF()} option!");
-                    return false;
-                }
+                LogWarn($"Target({playerReader.TargetId}) has no {Gossip.Vendor.ToStringF()} option!");
+                return false;
             }
         }
 

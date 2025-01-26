@@ -1,0 +1,301 @@
+{
+  "ClassName": "Mage",
+  "PathFilename": "5_Gnome.json",
+  "PathThereAndBack": true,
+  "PathReduceSteps": false,
+  "CheckTargetGivesExp": true,
+  "Skin": true,
+  "Loot": false,
+  "IntVariables": {
+    "Item_Conjure_Drink": 5506,//2288,//5350,
+    "Item_Conjure_Food": 1113,//5349,
+    "MIN_FOOD%": 50,
+    "MIN_WATER%": 50,
+    "MIN_MANA_SPELL%": 50
+  },
+  "Pull": {
+    "Sequence": [
+      {
+        "Name": "Frostbolt",
+        "Key": "4",
+        "HasCastBar": true,
+        "Requirements": [
+          "SpellInRange:3",
+          "Mana% > MIN_MANA_SPELL%"
+        ]
+      },
+      {
+        "Name": "Arcane Blast",
+        "Key": "1",
+        "HasCastBar": true,
+        "Interrupt": true,
+        "Requirements": [
+          "SpellInRange:3",
+          "Mana% > MIN_MANA_SPELL%",
+        ]
+      },
+      {
+        "Name": "Approach",
+        "Requirements": [
+          "!Casting",
+          "!Shooting"
+        ]
+      }
+    ]
+  },
+  "Flee": {
+    "Sequence": [
+      {
+        "Name": "Flee",
+        "Requirement": "(MobCount > 1 && Health% < 60) || TargetElite" 
+      }
+    ]
+  },
+  "Combat": {
+    "Sequence": [
+      {
+        "Name": "Frost Nova",
+        "Key": 0,
+        "BeforeCastFaceTarget": true,
+        "Requirements": [
+          "InMeleeRange"
+        ],
+        "Interrupt": "InMeleeRange && TargetAlive",
+        "AfterCastStepBack": -1
+      },
+      {
+        "Name": "Arcane Barrage",
+        "Key": "6",
+        "WhenUsable": true,
+        "Requirements": [
+          "SpellInRange:3"
+        ]
+      },
+      {
+        "Name": "Fire Blast",
+        "WhenUsable": true,
+        "Key": "5",
+        "Requirements": [
+          "SpellInRange:4"
+        ]
+      },
+      {
+        "Name": "Arcane Blast",
+        "Key": "1",
+        "HasCastBar": true,
+        "Requirements": [
+          "SpellInRange:3"
+        ]
+      },
+      {
+        "Name": "Frostbolt",
+        "Key": "4",
+        "HasCastBar": true,
+        "Requirements": [
+          "SpellInRange:3"
+        ]
+      },
+      {
+        "Name": "AutoAttack",
+        "Requirements": [
+          "!HasRangedWeapon",
+          "!Casting",
+          "!Shooting"
+        ]
+      },
+      {
+        "Name": "Approach",
+        "Requirements": [
+          "!Casting",
+          "!Shooting"
+        ]
+      },
+      {
+        "Name": "Stepback",
+        "Key": "S",
+        "PressDuration": 3000,
+        "BaseAction": true,
+        "BeforeCastFaceTarget": true,
+        "Requirements": [
+          "Frostbite",
+          "TargetsMe",
+          "InMeleeRange"
+        ],
+        "Interrupt": "InMeleeRange && TargetAlive"
+      },
+    ]
+  },
+  "Parallel": {
+    "Sequence": [
+      { // Just drink both since we're drinking anyway
+        "Name": "Food",
+        "Key": "=",
+        "Requirement": "Health% < MIN_FOOD% || Mana% < MIN_WATER%"
+      },
+      {
+        "Name": "Drink",
+        "Key": "-",
+        "Requirement": "Health% < MIN_FOOD% || Mana% < MIN_WATER%"
+      }
+    ]
+  },
+  "Adhoc": {
+    "Sequence": [
+      {
+        "Name": "Frost Armor",
+        "Key": "3",
+        "Requirement": "!Frost Armor"
+      },
+      {
+        "Name": "Arcane Intellect",
+        "Key": "F3",
+        "Requirement": "!Arcane Intellect",
+        "Log": false
+      },
+      {
+        "Name": "Conjure Water",
+        "Key": "9",
+        "HasCastBar": true,
+        "Requirement": "!BagItem:Item_Conjure_Drink:4",
+        "AfterCastWaitCastbar": true,
+        "AfterCastWaitBag": true
+      },
+      {
+        "Name": "Conjure Food",
+        "Key": "8",
+        "HasCastBar": true,
+        "Requirement": "!BagItem:Item_Conjure_Food:4",
+        "AfterCastWaitCastbar": true,
+        "AfterCastWaitBag": true
+      }
+    ]
+  },
+  "NPC": {
+    "Sequence": [
+      {
+        "Cost": 6,
+        "Name": "Repair",
+        "Key": "Y",
+        "Requirement": "Durability% < 35",
+        "PathFilename": "20_Westfall_Vendor.json"
+      },
+      {
+        "Cost": 6,
+        "Name": "Sell",
+        "Key": "Y",
+        "Requirements": [
+          "BagFull",
+          "BagGreyItem"
+        ],
+        "PathFilename": "20_Westfall_Vendor.json" // 5_Human_Vendor.json // 1_Human.json
+      } // 23_Duskwood_Vendor.json // Swamp_of_Sorrows_vendor.json // Blasted_Lands_Nethergarde_Vendor.json // Burning_Steppes_Vendor.json
+    ]
+  },
+  "Wait": {
+      "Sequence": [
+      {
+        "Cost": 1, // Pause bot when menu is opened
+        "Name": "Menu Closed",
+        "Requirement": "MenuOpen"
+      }
+      ]
+  },
+  "Paths": [
+    { // Northsire
+      "PathFilename": "_pack\\1-20\\Human\\01-04_Elwynn Forest_Northshire Valley (kobold-wolves-defias).json",
+      "PathThereAndBack": false,
+      "PathReduceSteps": false,
+      "Requirements": [
+        "Level < 5"
+      ]
+    },
+    { // Elwynn
+      "PathFilename": "_pack\\1-20\\Human\\05-09_Elwynn Forest_Farms Tour (pigs, bears, humans).json",
+      "PathThereAndBack": false,
+      "PathReduceSteps": false,
+      "Requirements": [
+        "Level < 11"
+      ]
+    },
+    { // Westfall
+      "PathFilename": "_pack\\1-20\\Human\\10-13_Westfall_The Jansen Stead.json",
+      "PathThereAndBack": true,
+      "PathReduceSteps": false,
+      "Requirements": [
+        "Level < 16"
+      ]
+    },
+    {
+      "PathFilename": "_pack\\1-20\\Human\\12-15_Westfall.json",
+      "PathThereAndBack": true,
+      "PathReduceSteps": false,
+      "Requirements": [
+        "Level < 18"
+      ]
+    },
+    {
+      "PathFilename": "_pack\\1-20\\Human\\16-18_Westfall_Crabs.json",
+      "PathThereAndBack": true,
+      "PathReduceSteps": false,
+      "Requirements": [
+        "Level < 21"
+      ]
+    },
+    {
+      "PathFilename": "_pack\\1-20\\Human\\18-21_Westfall.json",
+      "PathThereAndBack": true,
+      "PathReduceSteps": false,
+      "Requirements": [
+        "Level < 24"
+      ]
+    },
+    {
+      "PathFilename": "20-24 Westfall Shorecrawler.json",
+      "PathThereAndBack": true,
+      "PathReduceSteps": false,
+      "Requirements": [
+        "Level < 27"
+      ]
+    },
+    { // Duskwood time
+      "PathFilename": "_pack\\20-30\\Duskwood\\23-27 Darkshire (skelly, spiders - Blind Mary to Naraxis rare elite).json",
+      "PathThereAndBack": true,
+      "PathReduceSteps": false,
+      "Requirements": [
+        "Level < 30"
+      ]
+    },
+    {
+      "PathFilename": "_pack\\20-30\\Duskwood\\28-30 Manor Mistmantle ghouls.json",
+      "PathThereAndBack": true,
+      "PathReduceSteps": false,
+      "Requirements": [
+        "Level < 36"
+      ]
+    },
+    { // Swamp of Sorrows
+      "PathFilename": "_pack\\30-40\\Swamp of Sorrows\\38-42 Misty Valley.json",
+      "PathThereAndBack": false,
+      "PathReduceSteps": false,
+      "Requirements": [
+        "Level < 50"
+      ]
+    },
+    { // Blasted Lands
+      "PathFilename": "_pack\\50-60\\Blasted Lands\\Blasted_Lands_46-50_safe.json",
+      "PathThereAndBack": false,
+      "PathReduceSteps": false,
+      "Requirements": [
+        "Level < 56"
+      ]
+    },
+    { // Burning Steppes
+      "PathFilename": "_pack\\50-60\\Burning Steppes\\Burning_Steppes_53+.json",
+      "PathThereAndBack": true,
+      "PathReduceSteps": false,
+      "Requirements": [
+        "Level < 56"
+      ]
+    },
+  ],
+}
