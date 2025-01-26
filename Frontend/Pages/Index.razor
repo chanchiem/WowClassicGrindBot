@@ -10,9 +10,12 @@
 @implements IDisposable
 
 <div class="container-fluid">
+@if (AddonConfig.Exists() && FrameConfig.Exists())
+{
     <div class="row">
         <BotHeader ShowActiveGoal="false" />
     </div>
+}
     <div class="row">
         @if (AddonConfig.Exists() && FrameConfig.Exists())
         {
