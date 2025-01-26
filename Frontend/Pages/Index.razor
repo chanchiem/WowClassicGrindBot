@@ -11,6 +11,9 @@
 
 <div class="container-fluid">
     <div class="row">
+        <BotHeader ShowActiveGoal="false" />
+    </div>
+    <div class="row">
         @if (AddonConfig.Exists() && FrameConfig.Exists())
         {
             <div class="col-sm">
@@ -51,7 +54,7 @@
                     </div>
                 }
 
-                <BotHeader ShowActiveGoal="false" Hide="@(botController.IsBotActive)" />
+                @* <BotHeader ShowActiveGoal="false" Hide="@(botController.IsBotActive)" /> *@
                 <ProfileSelectorComponent Hide="@(botController.IsBotActive)" />
 
                 @if (botController.ClassConfig == null)

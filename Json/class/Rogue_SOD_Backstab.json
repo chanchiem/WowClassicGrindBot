@@ -1,0 +1,135 @@
+{
+  /**
+  * Theory: Ideal leveling area is when they are 3 levels before you or green
+  * Good Leveling: 30-40 -> 
+  * 36-45 (did it up to 48-49) -> _pack\30-40\Swamp of Sorrows\38-42 Misty Valley.json // Also a good spot to get advanced herbalism enchant schematic
+  * 45 - 48 -> Json/path/_p2/42-45 Hyenas Basalisks Scorpids.json // Blasted Lands
+  * 51-55 -> _pack\\50-60\\Blasted Lands\\49-52.json -> Blasted_Lands_46-50_safe.json // Really good for pinchers and basalisk brains; great for selling
+  * 55+? -> _pack\\50-60\\Burning Stepps\\Burning_Steppes_53+.json
+  * Good items for farming:
+  * Large venom sac: 30-36 Shimmering Flats Right Side - pretty decent place
+  * Blasted Lands 46-50; great for basilisk brain, pincers, and lungs
+  */
+  "ClassName": "Rogue",
+  "PathFilename": "_pack\\50-60\\Burning Steppes\\Burning_Steppes_53+.json",
+  "NPCMaxLevels_Above": 2,
+  "CheckTargetGivesExp": true, // Better than NPCMaxLevels_Below?
+  // "NPCMaxLevels_Below": 11, // At level 44, gray is at 35. 45 is at 35 still
+  // "PathThereAndBack": false, // False for blasted lands only
+  "UseMount": true,
+  "Mount": { "Key": "N4"},
+  "Blacklist": [
+    "Flamekin"
+  ],
+  "Pull": {
+    "Sequence": [
+      {
+        "Name": "Shoot",
+        "Key": "9",
+        "AfterCastDelay": 2000,
+        "AfterCastWaitMeleeRange": false
+      }
+    ]
+  },
+  "Combat": {
+    "Sequence": [
+      {
+        "Name": "Ambush",
+        "Key": "4",
+        "WhenUsable": true,
+      },
+      {
+        "Name": "Evasion",
+        "Key": "F3",
+        "WhenUsable": true,
+        "Requirement": "Health%<40"
+      },
+      {
+        "Name": "Kidney Shot",
+        "Key": "3",
+        "WhenUsable": true,
+        "Requirements": [
+          "Combo Point == 5",
+          "TargetHealth% > 30",
+          "Health% < 50"
+        ]
+      },
+      {
+        "Name": "Backstab",
+        "Key": "2"
+      },
+      {
+        "Name": "AutoAttack",
+        "Key": "T"
+      },
+      {
+        "Name": "Approach",
+        "Log": false
+      }
+    ]
+  },
+  "Adhoc": {
+    "Sequence": [
+      {
+        "Name": "potionhp",
+        "Key": "N4",
+        "Requirement": "Health%<5",
+        "Cooldown": 60000,
+        "InCombat": "true",
+        "Log": false,
+        "Cost": 3
+      },
+      {
+        "Name": "Food",
+        "Key": "N1",
+        "Requirement": "Health%<50"
+      }
+    ]
+  },
+  "Wait": {
+      "Sequence": [
+      {
+          "Cost": 19,
+          "Name": "HP regen",
+          "Requirements": [
+              "FoodCount == 0 || !Usable:Food",
+              "Health% < 75"
+          ]
+      },
+      {
+        "Cost": 1, // Pause bot when menu is opened
+        "Name": "Menu Closed",
+        "Requirement": "MenuOpen"
+      }
+      ]
+  },
+  "Flee": {
+    "Sequence": [
+      {
+        "Name": "Flee",
+        "Requirement": "MobCount > 1 && Health% < 30 && TargetHealth% > 30"
+      },
+    ]
+  },
+  "NPC": {
+    "Sequence": [
+      {
+        "Name": "Repair",
+        "Key": "Y",
+        "Requirement": "Durability% < 35",
+        "PathFilename": "Burning_Steppes_Vendor.json",
+        "Cost": 6
+      },
+      {
+        "Name": "Sell",
+        "Key": "Y",
+        "Requirements": [
+          "BagFull",
+          "BagGreyItem"
+        ],
+        "PathFilename": "Burning_Steppes_Vendor.json",
+        "Cost": 6
+      }
+    ]
+  }
+}

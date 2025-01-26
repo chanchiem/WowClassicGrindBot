@@ -1,0 +1,93 @@
+﻿@inject IWowScreen screen
+@inject IScreenImageProvider provider
+
+@* @using SixLabors.ImageSharp
+@using SixLabors.ImageSharp.PixelFormats
+@using SixLabors.ImageSharp.Formats.Jpeg *@
+
+@using System;
+@using System.Drawing;
+@using System.Drawing.Imaging;
+@using System.IO;
+@using System.Windows.Forms;
+
+<div class="card" @onclick="Toggle">
+    @if (enabled)
+    {
+        <img class="@(Stretch ? "img-filled" : "img-filled-half")" src="@imageBase64" alt="Toggle preview!" />
+    }
+    else
+    {
+        <label class="oi oi-fullscreen-enter">  Toggle preview!</label>
+    }
+</div>
+
+@code {
+    private string imageBase64;
+    private bool enabled = false;
+    private Timer? timer;
+
+    [Parameter]
+    public bool Stretch { get; set; } = false;
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            screen.OnChanged += this.ImageChanged;
+        }
+    }
+
+    public void Dispose()
+    {
+        screen.OnChanged -= this.ImageChanged;
+        timer?.Dispose();
+    }
+
+    protected void Toggle()
+    {
+        enabled = !enabled;
+        if (enabled)
+        {
+            StartCapture();
+        }
+        else
+        {
+            timer?.Dispose();
+        }
+    }
+
+    private void StartCapture()
+    {
+        timer = new Timer(async _ => await CaptureScreen(), null, 0, 1000); // Capture every 1 second
+    }
+
+    private async Task CaptureScreen()
+    {
+        var width = provider.ScreenRect.Width;
+        var height = provider.ScreenRect.Height;
+        var screenSize = new Size(provider.ScreenRect.Width, provider.ScreenRect.Height);
+
+        using (var bitmap = new Bitmap(width, height))
+        {
+            using (var g = Graphics.FromImage(bitmap))
+            {
+                g.CopyFromScreen(Point.Empty, Point.Empty, screenSize);
+            }
+
+            using (var ms = new MemoryStream())
+            {
+                bitmap.Save(ms, ImageFormat.Jpeg);
+                var imageBytes = ms.ToArray();
+                imageBase64 = "data:image/jpeg;base64," + Convert.ToBase64String(imageBytes);
+            }
+        }
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async void ImageChanged()
+    {
+        await CaptureScreen();
+    }
+}
