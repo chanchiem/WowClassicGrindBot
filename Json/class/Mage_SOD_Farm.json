@@ -1,7 +1,6 @@
 {
   "ClassName": "Mage",
-  "PathFilename": "5_Gnome.json",
-  "PathThereAndBack": true,
+  "PathThereAndBack": false,
   "PathReduceSteps": false,
   "CheckTargetGivesExp": true,
   "Skin": false,
@@ -18,6 +17,15 @@
     "MIN_MANA_SPELL%": 50,
     "Buff_Missile Barrage": 236221,
     "Buff_Clearcasting": 136170,
+  },
+  "Wait": {
+      "Sequence": [
+      {
+        "Cost": 1, // Pause bot when menu is opened
+        "Name": "Menu Closed",
+        "Requirement": "MenuOpen"
+      }
+      ]
   },
   "Pull": {
     "Sequence": [
@@ -82,12 +90,11 @@
         ],
         "InCombat": "true"
       },
-      { // Heal if clearcasting on 
+      { // Heal if clearcasting on
         "Name": "Mass Regeneration",
         "Key": "N6",
         "Requirements": [
-          "Health% > 75",
-          "(Buff_Clearcasting>0)"
+          "(Health% < 75 && Buff_Clearcasting>0) || (Health% < 50 && TargetHealth% > 20)",
         ]
       },
       {
@@ -103,7 +110,8 @@
         "Key": 0,
         "BeforeCastFaceTarget": true,
         "Requirements": [
-          "InMeleeRange"
+          "InMeleeRange",
+          "TargetHealth% > 20"
         ],
         "Interrupt": "InMeleeRange && TargetAlive",
         "AfterCastStepBack": 3000
@@ -193,10 +201,15 @@
       //   "Key": "3",
       //   "Requirement": "!Frost Armor"
       // },
+      // {
+      //   "Name": "Mage Armor",
+      //   "Key": "3",
+      //   "Requirement": "!Mage Armor"
+      // },
       {
-        "Name": "Mage Armor",
+        "Name": "Molten Armor",
         "Key": "3",
-        "Requirement": "!Mage Armor"
+        "Requirement": "!Molten Armor"
       },
       {
         "Name": "Arcane Intellect",
@@ -240,7 +253,7 @@
         "Name": "Repair",
         "Key": "Y",
         "Requirement": "Durability% < 35",
-        "PathFilename": "Burning_Steppes_Vendor.json"
+        "PathFilename": "Felwood_Repair.json"
       },
       {
         "Cost": 6,
@@ -250,136 +263,10 @@
           "BagFull",
           "BagGreyItem"
         ],
-        "PathFilename": "Burning_Steppes_Vendor.json" //"Stranglethorn_Vale_Vendor.json" // "Blasted_Lands_Nethergarde_Vendor.json" // "Swamp_of_Sorrows_vendor.json" //"Stranglethorn_Vale_Vendor.json" //"23_Duskwood_Vendor.json" // "20_Westfall_Vendor.json" // 5_Human_Vendor.json // 1_Human.json
+        "PathFilename": "Felwood_Repair.json" // "Burning_Steppes_Vendor.json" 
+         //"Stranglethorn_Vale_Vendor.json" // "Blasted_Lands_Nethergarde_Vendor.json" // "Swamp_of_Sorrows_vendor.json" //"Stranglethorn_Vale_Vendor.json" //"23_Duskwood_Vendor.json" // "20_Westfall_Vendor.json" // 5_Human_Vendor.json // 1_Human.json
       }  
     ]
   },
-  "Wait": {
-      "Sequence": [
-      {
-        "Cost": 1, // Pause bot when menu is opened
-        "Name": "Menu Closed",
-        "Requirement": "MenuOpen"
-      }
-      ]
-  },
-  "Paths": [
-    { // Northsire
-      "PathFilename": "_pack\\1-20\\Human\\01-04_Elwynn Forest_Northshire Valley (kobold-wolves-defias).json",
-      "PathThereAndBack": false,
-      "PathReduceSteps": false,
-      "Requirements": [
-        "Level < 5"
-      ]
-    },
-    { // Elwynn
-      "PathFilename": "_pack\\1-20\\Human\\05-09_Elwynn Forest_Farms Tour (pigs, bears, humans).json",
-      "PathThereAndBack": false,
-      "PathReduceSteps": false,
-      "Requirements": [
-        "Level < 11"
-      ]
-    },
-    { // Westfall
-      "PathFilename": "_pack\\1-20\\Human\\10-13_Westfall_The Jansen Stead.json",
-      "PathThereAndBack": true,
-      "PathReduceSteps": false,
-      "Requirements": [
-        "Level < 16"
-      ]
-    },
-    {
-      "PathFilename": "_pack\\1-20\\Human\\12-15_Westfall.json",
-      "PathThereAndBack": true,
-      "PathReduceSteps": false,
-      "Requirements": [
-        "Level < 18"
-      ]
-    },
-    {
-      "PathFilename": "_pack\\1-20\\Human\\16-18_Westfall_Crabs.json",
-      "PathThereAndBack": true,
-      "PathReduceSteps": false,
-      "Requirements": [
-        "Level < 21"
-      ]
-    },
-    {
-      "PathFilename": "_pack\\1-20\\Human\\18-21_Westfall.json",
-      "PathThereAndBack": true,
-      "PathReduceSteps": false,
-      "Requirements": [
-        "Level < 24"
-      ]
-    },
-    { // Duskwood time
-      "PathFilename": "_pack\\20-30\\Duskwood\\21-22.json",
-      "PathThereAndBack": false,
-      "PathReduceSteps": false,
-      "Requirements": [
-        "Level < 26"
-      ]
-    },
-    {
-      "PathFilename": "_pack\\20-30\\Duskwood\\25-28 Spiders.json",
-      "PathThereAndBack": false,
-      "PathReduceSteps": false,
-      "Requirements": [
-        "Level < 32"
-      ]
-    },
-    {
-      "PathFilename": "_pack\\20-30\\Duskwood\\28-30 Manor Mistmantle ghouls.json",
-      "PathThereAndBack": false,
-      "PathReduceSteps": false,
-      "Requirements": [
-        "Level < 37"
-      ]
-    },
-    { // Stranglethorn - Vendor: /tar Jaquilina Dramet -- raptors are lvl 35, might b egood too
-      "PathFilename": "_pack\\30-40\\Stranglethorn Vale\\35-39 Gorillas Crocs.json", // Gorillas Level 37, Crocs Level 36
-      "PathThereAndBack": false,
-      "PathReduceSteps": false,
-      "Requirements": [
-        "Level < 41"
-      ]
-    },
-    {
-      "PathFilename": "_pack\\30-40\\Stranglethorn Vale\\37-42 Gorillas.json", // 
-      "PathThereAndBack": false,
-      "PathReduceSteps": false,
-      "Requirements": [
-        "Level < 44"//47 // Maybe more appropriate for 44 so we can do misty valley below instead.
-      ]
-    },
-    { // Swamp of Sorrows //  No repair
-      "PathFilename": "_pack\\30-40\\Swamp of Sorrows\\38-42 Misty Valley.json",
-      "PathThereAndBack": false,
-      "PathReduceSteps": false,
-      "Requirements": [
-        "Level < 48" // maybe better to have level 48 go to blasted lands // nvm blasted lands death sucks
-      ]
-    },
-    {
-      "PathFilename": "_pack\\40-50\\Stranglethorn Vale\\43-44 Zanzil.json", //  good for after 48 all the way to 55?  // loot false
-      "PathThereAndBack": false,
-      "PathReduceSteps": false,
-      "Requirements": [
-        "Level < 54" // Could do 55 but it woudl take hours
-      ]
-    },
-    // { // Blasted Lands // Really sucks, especially with event
-    //   "PathFilename": "_pack\\50-60\\Blasted Lands\\Blasted_Lands_46-50_safe.json",
-    //   "PathThereAndBack": false,
-    //   "PathReduceSteps": false,
-    //   "Requirements": [
-    //     "Level < 53"
-    //   ]
-    // },
-    { // Burning Steppes
-      "PathFilename": "_pack\\50-60\\Burning Steppes\\Burning_Steppes_53+.json",
-      "PathThereAndBack": true,
-      "PathReduceSteps": false
-    },
-  ],
+  "PathFilename": "_pack\\50-60\\Felwood\\53-55 Felwood - Irontree Woods.json"
 }
