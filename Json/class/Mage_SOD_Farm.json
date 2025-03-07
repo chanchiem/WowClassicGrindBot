@@ -8,7 +8,7 @@
   "UseMount": true,
   "Mount": { "Key": "N4"},
   "IntVariables": { //8076 next food
-    "Item_Conjure_Drink": 8078,//8077,//3772,//2136,//2288,//5350,
+    "Item_Conjure_Drink": 231778,//8078,//8077,//3772,//2136,//2288,//5350,
     "Item_Conjure_Food": 22895,//8076,//8075,//1487,//1114,//1113,//5349,
     "Item_Mana_Jade": 5513,
     "Item_Mana_Ruby": 8008,
@@ -71,14 +71,14 @@
       }
     ]
   },
-  "Flee": {
-    "Sequence": [
-      {
-        "Name": "Flee",
-        "Requirement": "(MobCount > 1 && Health% < 60) || TargetElite" 
-      }
-    ]
-  },
+  // "Flee": { // Turn off flee cuz healing might be better
+  //   "Sequence": [
+  //     {
+  //       "Name": "Flee",
+  //       "Requirement": "(MobCount > 1 && Health% < 60) || TargetElite" 
+  //     }
+  //   ]
+  // },
   "Combat": {
     "Sequence": [
       {
@@ -90,11 +90,11 @@
         ],
         "InCombat": "true"
       },
-      { // Heal if clearcasting on
+      { // Heal if clearcasting on, or just low health or mob count too high
         "Name": "Mass Regeneration",
         "Key": "N6",
         "Requirements": [
-          "(Health% < 75 && Buff_Clearcasting>0) || (Health% < 50 && TargetHealth% > 20)",
+          "(Health% < 75 && Buff_Clearcasting>0) || (Health% < 50 && TargetHealth% > 20) || (MobCount > 1 && Health% < 60)",
         ]
       },
       {
@@ -128,6 +128,7 @@
         "Name": "Arcane Missiles",
         "Key": "7",
         "HasCastBar": true,
+        "Cooldown": 3600,
         "Requirements": [
           "(Buff_Missile Barrage>0)"
         ]
@@ -221,7 +222,9 @@
         "Name": "Conjure Water",
         "Key": "9",
         "HasCastBar": true,
-        "Requirement": "!BagItem:Item_Conjure_Drink:4",
+        "Requirements": ["!BagItem:Item_Conjure_Drink:4",
+          "!BagFull"
+        ],
         "AfterCastWaitCastbar": true,
         "AfterCastWaitBag": true
       },
@@ -229,7 +232,9 @@
         "Name": "Conjure Food",
         "Key": "8",
         "HasCastBar": true,
-        "Requirement": "!BagItem:Item_Conjure_Food:4",
+        "Requirements": ["!BagItem:Item_Conjure_Food:4",
+          "!BagFull"
+        ],
         "AfterCastWaitCastbar": true,
         "AfterCastWaitBag": true
       },
@@ -261,12 +266,13 @@
         "Key": "Y",
         "Requirements": [
           "BagFull",
-          "BagGreyItem"
+          // "BagGreyItem"
         ],
         "PathFilename": "Felwood_Repair.json" // "Burning_Steppes_Vendor.json" 
          //"Stranglethorn_Vale_Vendor.json" // "Blasted_Lands_Nethergarde_Vendor.json" // "Swamp_of_Sorrows_vendor.json" //"Stranglethorn_Vale_Vendor.json" //"23_Duskwood_Vendor.json" // "20_Westfall_Vendor.json" // 5_Human_Vendor.json // 1_Human.json
       }  
     ]
   },
-  "PathFilename": "_pack\\50-60\\Felwood\\53-55 Felwood - Irontree Woods.json"
+  // "PathFilename": "_pack\\50-60\\Felwood\\53-55 Felwood - Irontree Woods.json"
+  "PathFilename": "Felwood Tree Stomper and Toxic Water Elemental.json"
 }
