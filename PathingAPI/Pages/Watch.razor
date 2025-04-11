@@ -3,22 +3,30 @@
 @using static System.Text.Json.JsonSerializer
 @using Microsoft.AspNetCore.SignalR;
 @using System.Buffers;
+@using static System.Diagnostics.Stopwatch;
+@using System.Collections.Concurrent;
 
 @inject IJSRuntime jsRuntime
 @inject PPatherService pPatherService
 @inject PathingAPILoggerSink loggerSink
 @inject JsonSerializerOptions options
+@inject DataConfig dataConfig
 
 @inject IHubContext<WatchHub> hubContext;
 
 @implements IAsyncDisposable
 
 
-<div style="position: relative; z-index: 2; left: 0px; padding-left:10px; height:30px; background-color: black;color:white">
+<div style="position: absolute; top: 0; left: 250px; width: -webkit-fill-available; height: 30px;
+    background-color: black; color: white; display: flex;
+    align-items: center; justify-content: space-between; padding: 0 10px; z-index: 10;">
     <div id="canvasText" style="display:inline-block; float: left">
         ...
     </div>
     <div style="display:inline-block; float: right">
+        <button @onclick="ClearCache">
+            <span style="color: red;">Cache Clear</span>
+        </button>
         <button @onclick="() => ToggleSceneExplorer()">
             <span style="@(SceneExplorerEnabled ? "color: green;" : "")">Explorer</span>
         </button>
@@ -60,10 +68,12 @@
         Teal,
         White,
         Orange,
-        Yellow
+        Yellow,
+        Black,
+        Magenta
     }
 
-    private const int RefreshTimeMs = 100;
+    private const int RefreshTimeMs = 50;
 
     [Parameter]
     public int PathColour { get; set; } = (int)Color.Red;
@@ -79,7 +89,7 @@
     private Thread thread;
     private CancellationTokenSource searchCts;
 
-    private Queue<ChunkEventArgs> chunkEventArgs = new();
+    private ConcurrentQueue<ChunkEventArgs> chunkEventArgs = new();
 
     private bool LoadGeometry { get; set; } = true;
 
@@ -93,6 +103,7 @@
     private Vector3 lastPeek;
 
     private int testPointsCount = 0;
+    private int blockedPointsCount = 0;
 
     private bool[] ToggleLayers = [true, true, true, true];
 
@@ -135,6 +146,12 @@
         base.Dispose();
     }
 
+    private void ClearCache()
+    {
+        dataConfig.DeletePPatherCache();
+        Log($"{TimeOnly.FromDateTime(DateTime.Now)} Cache Cleared {dataConfig.PathInfo}");
+    }
+
     private async void ToggleLayer(TriangleType layer)
     {
         ToggleLayers[layer.ToIndex()] = !ToggleLayers[layer.ToIndex()];
@@ -161,6 +178,7 @@
     private async ValueTask Reset()
     {
         testPointsCount = 0;
+        blockedPointsCount = 0;
 
         searchCts?.Cancel();
 
@@ -175,7 +193,7 @@
         Log(logEvent.RenderMessage());
     }
 
-    private async void Log(string message)
+    public async void Log(string message)
     {
         await SendLog(message, Token);
     }
@@ -185,7 +203,9 @@
         var cts = CancellationTokenSource.CreateLinkedTokenSource(Token, searchCts.Token);
         var token = cts.Token;
 
-        while (!token.IsCancellationRequested)
+        long startTime = GetTimestamp();
+
+        while (!token.IsCancellationRequested && pPatherService.IsSearching)
         {
             var points = pPatherService.GetCurrentSearchPath();
             await SendDrawPath(points, Color.White, "search", token);
@@ -193,38 +213,54 @@
             if (lastFrom != pPatherService.SearchFrom)
             {
                 lastFrom = pPatherService.SearchFrom;
-                await SendDrawLine(lastFrom.AsVector3(), Color.Green, "start", token);
+                await SendDrawLine(lastFrom.AsVector3(), PathGraph.toonHeight, Color.Green, "start", token);
             }
 
             if (lastTo != pPatherService.SearchTo)
             {
                 lastTo = pPatherService.SearchTo;
-                await SendDrawLine(lastTo.AsVector3(), Color.Blue, "end", token);
+                await SendDrawLine(lastTo.AsVector3(), PathGraph.toonHeight, Color.Blue, "end", token);
             }
 
             if (lastClosest != pPatherService.ClosestLocation)
             {
                 lastClosest = pPatherService.ClosestLocation;
-                await SendDrawLine(lastClosest, Color.Teal, "closest", token);
+                await SendDrawLine(lastClosest, PathGraph.toonHeight, Color.Black, "closest", token);
             }
 
-            /*
             // This can be causes issues for really big path
-            if (DrawTestPoints && testPointsCount != pPatherService.TestPoints.Count)
+            if (PathGraph.DelayMs > 0 && DrawTestPoints)
             {
-                testPointsCount = pPatherService.TestPoints.Count;
-                await SendDrawLines(pPatherService.TestPoints.ToHashSet(), Color.Yellow, "debug", token);
+                if (testPointsCount != pPatherService.TestPoints.Count)
+                {
+                    testPointsCount = pPatherService.TestPoints.Count;
+                    await SendDrawLines(pPatherService.TestPoints.ToHashSet(), Color.Green, "debug", token);
+                }
+
+                if (blockedPointsCount != pPatherService.BlockedPoints.Count)
+                {
+                    blockedPointsCount = pPatherService.BlockedPoints.Count;
+                    await SendDrawLines(pPatherService.BlockedPoints.ToHashSet(), Color.Red, "debug2", token);
+                }
             }
-            */
+
+#pragma warning disable CS0162
+            if (PathGraph.DelayMs > 0)
+            {
+                await DrawGeometry(token);
+            }
+#pragma warning restore CS0162
 
             if (lastPeek != pPatherService.PeekLocation)
             {
                 lastPeek = pPatherService.PeekLocation;
-                await SendDrawLine(lastPeek, Color.Orange, "peek", token);
+                await SendDrawLine(lastPeek, PathGraph.toonHeight, Color.Orange, "peek", token);
             }
 
             token.WaitHandle.WaitOne(RefreshTimeMs);
         }
+
+        Log($"Search took {GetElapsedTime(startTime)} ms");
 
         thread = null;
     }
@@ -236,27 +272,37 @@
         thread.Start();
     }
 
-    private async Task DrawGeometry()
+    private async Task DrawGeometry(CancellationToken token)
     {
-        while (chunkEventArgs.TryDequeue(out var e) && !Token.IsCancellationRequested)
+        while (LoadGeometry &&
+            !token.IsCancellationRequested &&
+            chunkEventArgs.TryDequeue(out var e))
         {
-            if (LoadGeometry)
-            {
-                await DequeueChunkEvent(e, Token);
-            }
+            await DequeueChunkEvent(e, token);
         }
     }
 
     private async void OnDrawFinalPath(Path spotPath)
     {
-        searchCts?.Cancel();
-
-        while (thread != null || Token.IsCancellationRequested)
+        if (spotPath != null)
         {
-            Token.WaitHandle.WaitOne(RefreshTimeMs);
+            while (thread != null || Token.IsCancellationRequested)
+            {
+                Token.WaitHandle.WaitOne(RefreshTimeMs);
+            }
         }
 
-        await DrawGeometry();
+        await DrawGeometry(Token);
+
+        if (DrawTestPoints)
+        {
+            await SendDrawLines(pPatherService.TestPoints, Color.Green, "debug", Token);
+            await SendDrawLines(pPatherService.BlockedPoints, Color.Red, "debug2", Token);
+        }
+
+        await SendDrawLine(lastFrom.AsVector3(), PathGraph.toonHeight, Color.Green, "start", Token);
+
+        await SendDrawLine(lastTo.AsVector3(), PathGraph.toonHeight, Color.Blue, "end", Token);
 
         if (spotPath == null || spotPath.locations.Count == 0)
         {
@@ -267,16 +313,6 @@
         await SendRemoveMesh("search", Token);
 
         await SendDrawPath(spotPath.locations, (Color)PathColour, Name, Token);
-
-        await SendDrawLine(lastFrom.AsVector3(), Color.Green, "start", Token);
-
-        await SendDrawLine(lastTo.AsVector3(), Color.Blue, "end", Token);
-
-        if (DrawTestPoints && testPointsCount != pPatherService.TestPoints.Count)
-        {
-            testPointsCount = pPatherService.TestPoints.Count;
-            await SendDrawLines(pPatherService.TestPoints, Color.Yellow, "debug", Token);
-        }
     }
 
     private async void OnDrawSphere(SphereEventArgs e)
@@ -287,7 +323,7 @@
 
     private async void OnDrawLines(LinesEventArgs e)
     {
-        await DrawGeometry();
+        await DrawGeometry(Token);
 
         await SendRemoveMesh(Name, Token);
 
@@ -303,12 +339,8 @@
 
     private async ValueTask DequeueChunkEvent(ChunkEventArgs e, CancellationToken token)
     {
-        if (token.IsCancellationRequested) return;
-
         try
         {
-            await Task.Delay(RefreshTimeMs, token);
-
             TriangleCollection chunks = pPatherService.GetChunkAt(e.GridX, e.GridY);
 
             var pooler = ArrayPool<int>.Shared;
@@ -337,6 +369,7 @@
                 var positions = MeshFactory.CreatePoints(chunks);
 
                 await hubContext.Clients.All.SendAsync("addModels", models, positions, token);
+                //await SendDrawBoundBox(chunks.Min, chunks.Max, Color.Magenta, $"boundbox_{e.GridX}_{e.GridY}", token);
             }
             finally
             {
@@ -381,9 +414,14 @@
         await hubContext.Clients.All.SendAsync("drawPath", points, (int)color, name, token);
     }
 
-    private async Task SendDrawLine(Vector3 point, Color color, string name, CancellationToken token)
+    private async Task SendDrawLine(Vector3 point, float height, Color color, string name, CancellationToken token)
     {
-        await hubContext.Clients.All.SendAsync("drawLine", point, (int)color, name, token);
+        await hubContext.Clients.All.SendAsync("drawLine", point, height, (int)color, name, token);
+    }
+
+    private async Task SendDrawBoundBox(Vector3 min, Vector3 max, Color color, string name, CancellationToken token)
+    {
+        await hubContext.Clients.All.SendAsync("drawBoundBox", min, max, (int)color, name, token);
     }
 
     private async Task SendDrawLines(IEnumerable<Vector3> points, Color color, string name, CancellationToken token)

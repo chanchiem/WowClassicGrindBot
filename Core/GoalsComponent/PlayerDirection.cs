@@ -19,7 +19,7 @@ public sealed partial class PlayerDirection
 {
     private const bool debug = false;
 
-    private const int DefaultIgnoreDistance = 10;
+    public const int DefaultIgnoreDistance = 10;
 
     private readonly ILogger<PlayerDirection> logger;
     private readonly ConfigurableInput input;
@@ -55,6 +55,11 @@ public sealed partial class PlayerDirection
         if (debug)
             LogDebugSetDirection(logger, playerReader.Direction, targetDir, distance);
 
+        SetDirection(targetDir, token);
+    }
+
+    public void SetDirection(float targetDir, CancellationToken token = default)
+    {
         input.PressFixed(GetDirectionKeyToPress(targetDir),
             TurnDuration(targetDir), token);
     }
@@ -69,7 +74,7 @@ public sealed partial class PlayerDirection
 
     private int TurnDuration(float targetDir)
     {
-        return (int)(TurnAmount(targetDir) * 1000 / PI);
+        return (int)(TurnAmount(targetDir) * 1000f / PI);
     }
 
     private ConsoleKey GetDirectionKeyToPress(float desiredDirection)
