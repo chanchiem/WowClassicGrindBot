@@ -139,6 +139,7 @@
         "HasCastBar": true,
         "Interrupt": "CanRun:Arcane Barrage",
         "CancelOnInterrupt": true,
+        "Cooldown": 2600,
         "Requirements": [
           "SpellInRange:3"
         ]
@@ -159,13 +160,13 @@
           "!Shooting"
         ]
       },
-      {
-        "Name": "Approach",
-        "Requirements": [
-          "!Casting",
-          "!Shooting"
-        ]
-      },
+      // {
+      //   "Name": "Approach",
+      //   "Requirements": [
+      //     "!Casting",
+      //     "!Shooting"
+      //   ]
+      // },
       {
         "Name": "Stepback",
         "Key": "S",
@@ -273,6 +274,6 @@
       }  
     ]
   },
-  // "PathFilename": "_pack\\50-60\\Felwood\\53-55 Felwood - Irontree Woods.json"
-  "PathFilename": "Felwood Tree Stomper and Toxic Water Elemental.json"
+  "PathFilename": "_pack\\50-60\\Felwood\\53-55 Felwood - Irontree Woods.json"
+  // "PathFilename": "Felwood Tree Stomper and Toxic Water Elemental.json"
 }

@@ -1,4 +1,4 @@
-﻿using Core.Database;
+﻿﻿using Core.Database;
 using Core.GOAP;
 
 using Game;
@@ -29,7 +29,7 @@ public sealed class AdhocNPCGoal : GoapGoal, IGoapEventListener, IRouteProvider,
     private const bool debug = false;
 
     private const int MAX_TIME_TO_REACH_MELEE = 10000;
-    private const int TIMEOUT = 5000;
+    private const int TIMEOUT = 15000; // Increased from 5000ms
 
     public override float Cost => key.Cost;
 
